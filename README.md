@@ -1,3 +1,3 @@
-# README
+# Bluetooth presence 
 
-TODO
+Detect device presence using bluetooth and a known MAC address
