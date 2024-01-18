@@ -7,10 +7,26 @@
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
 #include <sys/syslog.h>
+#include <signal.h>
+
+int sock;
+
+static void graceful_stop(int signum){
+
+    syslog(LOG_DEBUG, "caught signal, exiting");
+
+    // Chiusura del socket HCI
+    if (hci_close_dev(sock) < 0) {
+        syslog(LOG_ERR, "error closing HCI socket");
+    }
+
+    closelog();
+    exit(EXIT_SUCCESS);
+}
 
 int main(int argc, char **argv)
 {
-    int adapter_id, sock;
+    int adapter_id;
     bool presence = false;
     bdaddr_t bdaddr;
     char name[248] = { 0 };
@@ -19,6 +35,10 @@ int main(int argc, char **argv)
     setlogmask(LOG_UPTO (LOG_DEBUG));
     openlog("bt-presence.log", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
     syslog(LOG_DEBUG, "starting bt-presence application");
+
+    signal(SIGINT, graceful_stop);
+    signal(SIGTERM, graceful_stop);
+    syslog(LOG_DEBUG, "Registered signal handler");
 
     adapter_id = hci_get_route(NULL);
     sock = hci_open_dev( adapter_id );
@@ -45,7 +65,4 @@ int main(int argc, char **argv)
         syslog(LOG_DEBUG, "device name: %s", name);
         sleep(1);
     }
-
-    close( sock );
-    return 0;
 }
