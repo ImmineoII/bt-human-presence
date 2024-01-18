@@ -24,6 +24,53 @@ static void graceful_stop(int signum){
     exit(EXIT_SUCCESS);
 }
 
+static void daemonize(){
+    pid_t pid;
+
+    pid = fork();
+
+    //exit on error
+    if(pid < 0){
+        syslog(LOG_DEBUG, "fork #1 failed");
+        exit(EXIT_FAILURE);
+    }
+    syslog(LOG_DEBUG, "fork #1 done");
+
+    //stop parent
+    if(pid > 0){
+        syslog(LOG_DEBUG, "stop parent #1");
+        exit(EXIT_SUCCESS);
+    }
+
+    //change session id exit on failure
+    if(setsid() < 0){
+        syslog(LOG_DEBUG, "set SID failed");
+        exit(EXIT_FAILURE);
+    }
+    syslog(LOG_DEBUG, "set SID done");
+
+    //fork again to deamonize
+    pid = fork();
+
+    //exit on error
+    if(pid < 0){
+        syslog(LOG_DEBUG, "fork #2 failed");
+        exit(EXIT_FAILURE);
+    }
+    syslog(LOG_DEBUG, "fork #2 done");
+
+    //stop parent
+    if(pid > 0){
+        syslog(LOG_DEBUG, "stop parent #2");
+        exit(EXIT_SUCCESS);
+    }
+
+    //add signal handlers again
+    signal(SIGINT, graceful_stop);
+    signal(SIGTERM, graceful_stop);
+    syslog(LOG_DEBUG, "registered daemon signal handler");
+}
+
 int main(int argc, char **argv)
 {
     int adapter_id;
@@ -38,8 +85,17 @@ int main(int argc, char **argv)
 
     signal(SIGINT, graceful_stop);
     signal(SIGTERM, graceful_stop);
-    syslog(LOG_DEBUG, "Registered signal handler");
+    syslog(LOG_DEBUG, "registered signal handler");
 
+    //check if program should be deamonized
+    if(argc==2){
+        if(strcmp(argv[1], "-d") == 0){
+            syslog(LOG_DEBUG, "turning into a daemon");
+            daemonize();
+        }
+    }
+
+    // create hci socket
     adapter_id = hci_get_route(NULL);
     sock = hci_open_dev( adapter_id );
     if (adapter_id < 0 || sock < 0) {
