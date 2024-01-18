@@ -119,6 +119,6 @@ int main(int argc, char **argv)
             presence = true;
         }
         syslog(LOG_DEBUG, "device name: %s", name);
-        sleep(1);
+        sleep(10);
     }
 }
