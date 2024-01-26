@@ -1,0 +1,36 @@
+
+config TARGET_MAC_ADDRESS
+    string "MAC address to look"
+    default "C8:9F:0C:14:7D:33"
+
+config DETECTION_INTERVAL
+    int "Interval to scan for device MAC (seconds)"
+    default 20
+
+config PRESENCE_HYSTERESIS
+    int "Hysteresis for presence assertion"
+    default 3
+
+config MQTT_BROKER_IP
+    string "MQTT broker IP address"
+    default "localhost"
+
+config MQTT_BROKER_PORT
+    int "MQTT broker port"
+    default 1883
+
+config MQTT_USERNAME
+    string "MQTT username"
+    default "name"
+
+config MQTT_PASSWORD
+    string "MQTT password"
+    default "password"
+
+config MQTT_PRESENCE_TOPIC
+    string "Topic for MQTT publish"
+    default "/home/presence"
+
+config MQTT_PUBLISH_INTERVAL
+    int "MQTT interval to publish presence status (seconds)"
+    default 30
